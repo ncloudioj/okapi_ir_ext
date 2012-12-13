@@ -1,0 +1,6 @@
+build/
+dist/
+*okapi.egg-info/
+okapi/build/
+
+*.swp
