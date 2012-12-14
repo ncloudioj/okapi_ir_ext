@@ -1,7 +1,7 @@
 
 
 
-cdef extern from "../../../okapi-bss.h":
+cdef extern from "okapi-bss.h":
 	void initialise_bss()
 	int show_database(char *, size_t)
 	int open_database(char *)

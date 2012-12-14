@@ -28,7 +28,7 @@ else:
     cmdclass = {}
 
 ext_modules = [Extension("okapi", src_files,
-				libraries=['okapibss'])]
+				libraries=['okapibss'], include_dirs=['../'])]
 
 
 setup(
