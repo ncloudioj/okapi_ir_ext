@@ -4,7 +4,7 @@ from libc.stdlib cimport malloc, free, realloc
 cdef enum:
     SMALL_SIZE = 10 * 1024
     LARGE_SIZE = 1024 * 1024
-    SKIP_SIZE = 6 # skip the leading useles of document
+    SKIP_SIZE = 1 # skip the leading useles of document
 
 cdef class OkapiBss:
     """Wrap okapi-bss library"""
@@ -80,7 +80,7 @@ cdef class OkapiBss:
             try:
                 index_b = record.index('Weight')  # index of 'Wight'
                 index_e = record.index('\n')      # index of first '\n'
-                index_t = record.index('\n\n')    # index of first '\n\n'
+                index_t = record.index('\n', index_e+1)    # index of first '\n\n'
             except ValueError as e:
                 continue
             else:
