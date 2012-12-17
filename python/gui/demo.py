@@ -9,11 +9,12 @@ ID_BTN_SEARCH       = 0x02
 ID_COM_DATABASE     = 0x03
 ID_TXT_QUERIES      = 0x04
 ID_TXT_RECORD       = 0x05
+ID_LIST_RECORD      = 0x06
 
 class OkapiApp(wx.Frame):
 
     def __init__(self, parent, id, title):
-        wx.Frame.__init__(self, parent, id, title, size=(780, 350))
+        wx.Frame.__init__(self, parent, id, title, size=(800, 600))
         panel = wx.Panel(self, -1)
         font = wx.SystemSettings_GetFont(wx.SYS_SYSTEM_FONT)
         font.SetPointSize(9)
@@ -41,8 +42,11 @@ class OkapiApp(wx.Frame):
         hbox2.Add(st2, 0)
         vbox.Add(hbox2, 0, wx.LEFT | wx.TOP, 10)
         vbox.Add((-1, 10))
+        self.lb1 = wx.ListBox(panel, ID_LIST_RECORD,
+                              style=wx.LB_SINGLE|wx.LB_NEEDED_SB)
         hbox3 = wx.BoxSizer(wx.HORIZONTAL)
         self.tc2 = wx.TextCtrl(panel, ID_TXT_RECORD, style=wx.TE_MULTILINE)
+        hbox3.Add(self.lb1, 1, wx.EXPAND, border=10)
         hbox3.Add(self.tc2, 1, wx.EXPAND)
         vbox.Add(hbox3, 1, wx.LEFT | wx.RIGHT | wx.EXPAND, 10)
         vbox.Add((-1, 25))
@@ -70,6 +74,7 @@ class OkapiApp(wx.Frame):
         self.Bind(wx.EVT_BUTTON, self.OnSearch, id=ID_BTN_SEARCH)
         self.Bind(wx.EVT_BUTTON, self.OnClose, id=ID_BTN_EXIT)
         self.Bind(wx.EVT_CLOSE, self.OnClose)
+        self.Bind(wx.EVT_LISTBOX, self.OnSelect, id=ID_LIST_RECORD)
 
         # init okapi
         self.okapi = OkapiBss()
@@ -96,17 +101,25 @@ class OkapiApp(wx.Frame):
             self.NotifyIssus("Please input the queries.")
             return
 
-        result = ""
+        result = []
         self.okapi.use(dbname)
         (nset, nposting) = self.okapi.search(queries.split(" "))
         #import pdb; pdb.set_trace()
-        for record in self.okapi.show(nset, 0, 5):
-            result += "Posting: %s, Weight: %.3f\n" % (record["posting"],
+        self.records = {}
+        for record in self.okapi.show(nset, 0, 10):
+            posting = "Posting: %s, Weight: %.3f" % (record["posting"],
                     record["weight"])
+            self.records[posting] = record["text"]
+            result.append( posting )
 
-        self.tc2.SetValue(result)
+        self.tc2.Clear()
+        self.lb1.Clear()
+        self.lb1.InsertItems(result, 0)
 
-        return
+
+    def OnSelect(self, event):
+        posting = event.GetString()
+        self.tc2.SetValue(self.records[posting])
 
 
     def NotifyIssus(self, msg):
