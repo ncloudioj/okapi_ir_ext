@@ -3,4 +3,6 @@ dist/
 *okapi.egg-info/
 okapi/build/
 
+*.pyc
+*.pyo
 *.swp
