@@ -4,7 +4,7 @@ The python binding for Okapi IR system.
 
 ## Installation
 
-    $ sudo python setup install
+    $ sudo python setup.py install
 
 ## Getting started
 
