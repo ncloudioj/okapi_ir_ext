@@ -12,11 +12,11 @@ ECHO = $(ECHO1:0=@echo)
 #### Start of system configuration section. ####
 
 srcdir = .
-topdir = /home/nan/.rvm/rubies/ruby-1.9.3-p0/include/ruby-1.9.1
-hdrdir = /home/nan/.rvm/rubies/ruby-1.9.3-p0/include/ruby-1.9.1
-arch_hdrdir = /home/nan/.rvm/rubies/ruby-1.9.3-p0/include/ruby-1.9.1/$(arch)
+topdir = /home/nan/.rvm/rubies/ruby-1.9.3-p327/include/ruby-1.9.1
+hdrdir = /home/nan/.rvm/rubies/ruby-1.9.3-p327/include/ruby-1.9.1
+arch_hdrdir = /home/nan/.rvm/rubies/ruby-1.9.3-p327/include/ruby-1.9.1/$(arch)
 VPATH = $(srcdir):$(arch_hdrdir)/ruby:$(hdrdir)/ruby
-prefix = $(DESTDIR)/home/nan/.rvm/rubies/ruby-1.9.3-p0
+prefix = $(DESTDIR)/home/nan/.rvm/rubies/ruby-1.9.3-p327
 rubylibprefix = $(libdir)/$(RUBY_BASE_NAME)
 exec_prefix = $(prefix)
 vendorhdrdir = $(rubyhdrdir)/vendor_ruby
@@ -38,7 +38,7 @@ oldincludedir = $(DESTDIR)/usr/include
 includedir = $(prefix)/include
 localstatedir = $(prefix)/var
 sharedstatedir = $(prefix)/com
-sysconfdir = $(prefix)/etc
+sysconfdir = $(DESTDIR)/etc
 datadir = $(datarootdir)
 datarootdir = $(prefix)/share
 libexecdir = $(exec_prefix)/libexec
@@ -57,25 +57,26 @@ CC = gcc
 CXX = g++
 LIBRUBY = $(LIBRUBY_SO)
 LIBRUBY_A = lib$(RUBY_SO_NAME)-static.a
-LIBRUBYARG_SHARED = -Wl,-R -Wl,$(libdir) -L$(libdir) -l$(RUBY_SO_NAME)
-LIBRUBYARG_STATIC = -Wl,-R -Wl,$(libdir) -L$(libdir) -l$(RUBY_SO_NAME)-static
-OUTFLAG = -o 
-COUTFLAG = -o 
+LIBRUBYARG_SHARED = '-Wl,-rpath,$${ORIGIN}/../lib' -Wl,-R -Wl,$(libdir) -L$(libdir) -l$(RUBY_SO_NAME)
+LIBRUBYARG_STATIC = '-Wl,-rpath,$${ORIGIN}/../lib' -Wl,-R -Wl,$(libdir) -L$(libdir) -l$(RUBY_SO_NAME)-static
+empty =
+OUTFLAG = -o $(empty)
+COUTFLAG = -o $(empty)
 
 RUBY_EXTCONF_H = 
 cflags   =  $(optflags) $(debugflags) $(warnflags)
 optflags = -O3
 debugflags = -ggdb
-warnflags = -Wextra -Wno-unused-parameter -Wno-parentheses -Wno-long-long -Wno-missing-field-initializers -Wpointer-arith -Wwrite-strings -Wdeclaration-after-statement -Wimplicit-function-declaration
-CFLAGS   = -fPIC $(cflags)  -fPIC 
+warnflags = -Wall -Wextra -Wno-unused-parameter -Wno-parentheses -Wno-long-long -Wno-missing-field-initializers -Wpointer-arith -Wwrite-strings -Wdeclaration-after-statement -Wimplicit-function-declaration
+CFLAGS   = -fPIC $(cflags)  -fPIC $(ARCH_FLAG)
 INCFLAGS = -I. -I$(arch_hdrdir) -I$(hdrdir)/ruby/backward -I$(hdrdir) -I$(srcdir)
-DEFS     = -D_FILE_OFFSET_BITS=64
-CPPFLAGS =  -I../ -I/home/nan/.rvm/usr/include  $(DEFS) $(cppflags)
+DEFS     = 
+CPPFLAGS = -DHAVE__OKAPI_BSS_H -I../  $(DEFS) $(cppflags) -I$(prefix)/include
 CXXFLAGS = $(CFLAGS) $(cxxflags)
-ldflags  = -L.  -rdynamic -Wl,-export-dynamic
-dldflags = 
+ldflags  = -L.  -rdynamic -Wl,-export-dynamic -L$(prefix)/lib  -Wl,-R$(prefix)/lib 
+dldflags = -L$(prefix)/lib  -Wl,-R$(prefix)/lib 
 ARCH_FLAG = 
-DLDFLAGS = $(ldflags) $(dldflags)
+DLDFLAGS = $(ldflags) $(dldflags) $(ARCH_FLAG)
 LDSHARED = $(CC) -shared
 LDSHAREDXX = $(CXX) -shared
 AR = ar
@@ -84,10 +85,10 @@ EXEEXT =
 RUBY_BASE_NAME = ruby
 RUBY_INSTALL_NAME = ruby
 RUBY_SO_NAME = ruby
-arch = i686-linux
+arch = x86_64-linux
 sitearch = $(arch)
 ruby_version = 1.9.1
-ruby = /home/nan/.rvm/rubies/ruby-1.9.3-p0/bin/ruby
+ruby = /home/nan/.rvm/rubies/ruby-1.9.3-p327/bin/ruby
 RUBY = $(ruby)
 RM = rm -f
 RM_RF = $(RUBY) -run -e rm -- -rf
@@ -97,13 +98,14 @@ INSTALL = /usr/bin/install -c
 INSTALL_PROG = $(INSTALL) -m 0755
 INSTALL_DATA = $(INSTALL) -m 644
 COPY = cp
+TOUCH = exit >
 
 #### End of system configuration section. ####
 
 preload = 
 
-libpath = . $(libdir) /home/nan/.rvm/usr/lib
-LIBPATH =  -L. -L$(libdir) -Wl,-R$(libdir) -L/home/nan/.rvm/usr/lib -Wl,-R/home/nan/.rvm/usr/lib
+libpath = . $(libdir) $(prefix)/lib
+LIBPATH =  -L. -L$(libdir) -Wl,-R$(libdir) -L$(prefix)/lib -Wl,-R$(prefix)/lib
 DEFFILE = 
 
 CLEANFILES = mkmf.log
@@ -155,19 +157,21 @@ distclean: clean distclean-so distclean-rb-default distclean-rb
 realclean: distclean
 install: install-so install-rb
 
-install-so: $(RUBYARCHDIR)
 install-so: $(RUBYARCHDIR)/$(DLLIB)
 $(RUBYARCHDIR)/$(DLLIB): $(DLLIB)
-	@-$(MAKEDIRS) $(@D)
+	-$(Q)$(MAKEDIRS) $(@D)
 	$(INSTALL_PROG) $(DLLIB) $(@D)
+clean-static::
+	-$(Q)$(RM) $(STATIC_LIB)
 install-rb: pre-install-rb install-rb-default
 install-rb-default: pre-install-rb-default
 pre-install-rb: Makefile
 pre-install-rb-default: Makefile
 pre-install-rb-default:
 	$(ECHO) installing default rokapi libraries
-$(RUBYARCHDIR):
-	$(Q) $(MAKEDIRS) $@
+./.RUBYARCHDIR.time:
+	$(Q) $(MAKEDIRS) $(RUBYARCHDIR)
+	$(Q) $(TOUCH) $@
 
 site-install: site-install-so site-install-rb
 site-install-so: install-so
@@ -205,7 +209,7 @@ site-install-rb: install-rb
 
 $(DLLIB): $(OBJS) Makefile
 	$(ECHO) linking shared-object $(DLLIB)
-	@-$(RM) $(@)
+	-$(Q)$(RM) $(@)
 	$(Q) $(LDSHARED) -o $@ $(OBJS) $(LIBPATH) $(DLDFLAGS) $(LOCAL_LIBS) $(LIBS)
 
 

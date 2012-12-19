@@ -3,7 +3,8 @@
 The Ruby binding for Okapi IR system.
 
 ## Installation
-
+    
+    $ ./config.sh
     $ make
 
 ## License
