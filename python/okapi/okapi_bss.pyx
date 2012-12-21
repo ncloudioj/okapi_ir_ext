@@ -90,3 +90,8 @@ cdef class OkapiBss:
             yield result
 
         free(docs)
+
+
+    def delete(self, nset):
+        okapi_bss.okapi_delete(nset)
+
