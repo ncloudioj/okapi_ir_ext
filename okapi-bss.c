@@ -9,7 +9,7 @@
 #include <malloc.h>
 #include <signal.h>
 #include <stdlib.h>
-//#include <defines.h>
+/*#include <defines.h>*/
 #include <math.h>
 #include <errno.h>
 
@@ -22,7 +22,7 @@
 
 #define TRUE 1
 #define FALSE 0
-//#define NULL 0
+/*#define NULL 0*/
 
 #define NONE_ASSIGNED -1
 
@@ -35,6 +35,8 @@
 
 #define LEGAL_GSL "HFISGPN"
 #define STOP_TERMS "FH"
+
+#define INVALID_WEIGHT -1.0f
 
 #define POSTFIX "\n\n"
 /* trailing '\0' does NOT count */
@@ -93,13 +95,13 @@ static void malloc_error(char *program, char *function,
 
 
 /*
- **  terminate_run() displays the BSS error/warning by calling the
+ **  bss_log() displays the BSS error/warning by calling the
  **  function i0()
  **
- **  If an error the program is terminated.
+ **  
  */
 
-static void terminate_run (char *calling_fcn, char *command, int return_code) {
+static void bss_log (char *calling_fcn, char *command, int return_code) {
 	char bss_command[SMALL_BUFFER];
 	char bss_results[SMALL_BUFFER];
 
@@ -121,10 +123,13 @@ static void terminate_run (char *calling_fcn, char *command, int return_code) {
 	fprintf(stderr, "BSS error: [%s] (%d)\n", bss_results, return_code);
 	fprintf(stderr, "BSS_PARMPATH = [%s]\n", getenv("BSS_PARMPATH"));
 
+	/* No need to exit here, let the outer application handle the error. */
+	/*
 	if (return_code < 0) {
 		fprintf(stderr, "The program run will be terminated.\n");
 		quit_prog();
 	}
+	*/
 }
 
 
@@ -393,7 +398,8 @@ static double calc_wgt (int np) {
 			weight_function, r, bigr, rload, bigrload, np);
 
 	if ((return_code = i0(bss_command, bss_result)) < 0) {
-		terminate_run("calc_wgt()", bss_command, return_code);
+		bss_log("calc_wgt()", bss_command, return_code);
+		return INVALID_WEIGHT;
 	}
 
 	weight = atof(bss_result);
@@ -494,7 +500,8 @@ int okapi_search (int nkeywords, char **keywords, int *docset, int *npostings) {
 		// 			fprintf(stderr, "do_search() - command = [%s]\n", bss_command);
 
 		if ((return_code = i0(bss_command, bss_result)) != 0) {
-			terminate_run("main()", bss_command, return_code);
+			bss_log("bass_search", bss_command, return_code);
+			return -1;
 		}
 
 		/*
@@ -555,7 +562,8 @@ int okapi_search (int nkeywords, char **keywords, int *docset, int *npostings) {
 				//					fprintf(stderr, "do_search() - find = [%s]\n", find_command);
 
 				if ((return_code = i0(find_command, find_result)) != 0) {
-					terminate_run("main()", find_command, return_code);
+					bss_log("bass_search", find_command, return_code);
+					return -1;
 				}
 
 				/*
@@ -593,7 +601,8 @@ int okapi_search (int nkeywords, char **keywords, int *docset, int *npostings) {
 					sprintf(bss_command, "delete %d", set);
 
 					if ((return_code = i0(bss_command, bss_result)) != 0) {
-						terminate_run("term_input()", bss_command, return_code);
+						bss_log("term_input()", bss_command, return_code);
+						return -1;
 					}
 				}
 			}
@@ -610,13 +619,12 @@ int okapi_search (int nkeywords, char **keywords, int *docset, int *npostings) {
 		 */
 
 		sprintf(search_command + strlen(search_command), " op=bm25");
-//		fprintf(stderr, "do_search() - command = [%s]\n", search_command);
 
 		if ((return_code = i0(search_command, search_result)) != 0) {
-			terminate_run("term_input()", search_command, return_code);
+			bss_log("term_input()", search_command, return_code);
+			return -1;
 		}
 
-//		fprintf(stderr, "do_search() - result = [%s]\n", search_result);
 		search_buffer = search_result;
 		sscanf(search_buffer, "S%d np=%d", docset, npostings);
 		return 0;
@@ -666,4 +674,16 @@ int okapi_show (int set, int from, int no_docs, char *result, size_t max) {
 	*presult = '\0';
 	
 	return next;
+}
+
+void okapi_delete(int set) {
+	int return_code;
+	char bss_command[SMALL_BUFFER];
+	char bss_result[BIG_BUFFER];
+
+	sprintf(bss_command, "delete %d", set);
+
+	if ((return_code = i0(bss_command, bss_result)) != 0) {
+		bss_log("term_input()", bss_command, return_code);
+	}
 }
