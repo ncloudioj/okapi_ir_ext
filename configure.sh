@@ -8,12 +8,12 @@
 
 set -e
 
+OKAPI_ROOT_DIR="${PWD}"
 DB_DIR="${PWD}/databases"
 BIB_DIR="${PWD}/bibfiles"
 DOT_DIR="${PWD}/dot-files"
 
 # Modify the dot.cshrc
-OKAPI_ROOT_DIR="${PWD}"
 DOT_FILE="${DOT_DIR}/dot.cshrc"
 if [[ -f "${DOT_FILE}" ]]; then
     sed -i "/OKAPI_ROOT=/c\export OKAPI_ROOT=${OKAPI_ROOT_DIR}"\
@@ -23,7 +23,7 @@ fi
 # Modify the databases meta files
 # Get all installed databases
 for db in $( awk  'BEGIN { FS=" " } /^[^#]/ {print $1}' \
-             "${DB_DIR}/db_avail" ) ; do
+            "${DB_DIR}/db_avail" ); do
     sed -i "/bib_dir=/c\bib_dir=${BIB_DIR}"\
            "${DB_DIR}/${db}"
     sed -i "/ix_stem=/c\ix_stem=${BIB_DIR}/${db}"\
@@ -37,12 +37,15 @@ config_rc () {
     read -p "(1).bash_rc (2).zshrc :" rc
     case ${rc} in
         1)
-            RC_FILE=".bashrc" ;;
+            RC_FILE=".bashrc"
+            ;;
         2)
-            RC_FILE=".zshrc" ;;
+            RC_FILE=".zshrc"
+            ;;
         *)
             echo "Unknown rc file, please type the # again"
             config_rc
+            ;;
     esac
 
     local OKAPI_LABEL="# Okapi environment setting"
