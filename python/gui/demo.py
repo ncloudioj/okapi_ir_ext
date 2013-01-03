@@ -11,6 +11,7 @@ ID_TXT_QUERIES      = 0x04
 ID_TXT_RECORD       = 0x05
 ID_LIST_RECORD      = 0x06
 ID_BTN_INFILE       = 0x07
+ID_BTN_EXPORT       = 0x08
 
 wildcard = "Text file (*.txt)|*.txt|" \
            "All files (*.*)|*.*"
@@ -56,19 +57,21 @@ class OkapiApp(wx.Frame):
         hbox3.Add(self.tc2, 1, wx.EXPAND)
         vbox.Add(hbox3, 1, wx.LEFT | wx.RIGHT | wx.EXPAND, 10)
         vbox.Add((-1, 25))
-        hbox4 = wx.BoxSizer(wx.HORIZONTAL)
-        cb1 = wx.CheckBox(panel, -1, 'Posting')
-        cb1.SetFont(font)
-        hbox4.Add(cb1)
-        cb2 = wx.CheckBox(panel, -1, 'Weight')
-        cb2.SetFont(font)
-        hbox4.Add(cb2, 0, wx.LEFT, 10)
-        cb3 = wx.CheckBox(panel, -1, 'Document')
-        cb3.SetFont(font)
-        hbox4.Add(cb3, 0, wx.LEFT, 10)
-        vbox.Add(hbox4, 0, wx.LEFT, 10)
-        vbox.Add((-1, 25))
+        #hbox4 = wx.BoxSizer(wx.HORIZONTAL)
+        #cb1 = wx.CheckBox(panel, -1, 'Posting')
+        #cb1.SetFont(font)
+        #hbox4.Add(cb1)
+        #cb2 = wx.CheckBox(panel, -1, 'Weight')
+        #cb2.SetFont(font)
+        #hbox4.Add(cb2, 0, wx.LEFT, 10)
+        #cb3 = wx.CheckBox(panel, -1, 'Document')
+        #cb3.SetFont(font)
+        #hbox4.Add(cb3, 0, wx.LEFT, 10)
+        #vbox.Add(hbox4, 0, wx.LEFT, 10)
+        #vbox.Add((-1, 25))
         hbox5 = wx.BoxSizer(wx.HORIZONTAL)
+        btn4 = wx.Button(panel, ID_BTN_EXPORT, 'Export', size=(70, 30))
+        hbox5.Add(btn4, 0, wx.LEFT | wx.BOTTOM , 5)
         btn2 = wx.Button(panel, ID_BTN_EXIT, 'Exit', size=(70, 30))
         hbox5.Add(btn2, 0, wx.LEFT | wx.BOTTOM , 5)
         vbox.Add(hbox5, 0, wx.ALIGN_RIGHT | wx.RIGHT, 10)
@@ -82,6 +85,7 @@ class OkapiApp(wx.Frame):
         self.Bind(wx.EVT_CLOSE, self.OnClose)
         self.Bind(wx.EVT_LISTBOX, self.OnSelect, id=ID_LIST_RECORD)
         self.Bind(wx.EVT_BUTTON, self.OnImport, id=ID_BTN_INFILE)
+        self.Bind(wx.EVT_BUTTON, self.OnExport, id=ID_BTN_EXPORT)
 
         # init okapi
         self.okapi = OkapiBss()
@@ -110,10 +114,10 @@ class OkapiApp(wx.Frame):
 
         result = []
         self.okapi.use(dbname)
-        (nset, nposting) = self.okapi.search(queries.split(" "))
+        (self.nset, self.nposting) = self.okapi.search(queries.split(" "))
         #import pdb; pdb.set_trace()
         self.records = {}
-        for record in self.okapi.show(nset, 0, nposting):
+        for record in self.okapi.show(self.nset, 0, self.nposting):
             posting = "Posting: %s, Weight: %.3f" % (record["posting"],
                     record["weight"])
             self.records[posting] = record["text"]
@@ -149,6 +153,26 @@ class OkapiApp(wx.Frame):
                     [ self.queries.append(word) for word in
                             line.rstrip('\n').split(' ') ]
             self.tc1.SetValue(" ".join(self.queries))
+
+
+    def OnExport(self, event):
+        dlg = wx.FileDialog(
+                            self, message="Choose a file",
+                            defaultFile="output.txt",
+                            wildcard=wildcard,
+                            style=wx.SAVE | wx.CHANGE_DIR | wx.OVERWRITE_PROMPT
+                            )
+        if dlg.ShowModal() == wx.ID_OK:
+            path = dlg.GetPath()
+            with open(path, 'a') as f:
+                for record in self.okapi.show(self.nset, 0, self.nposting):
+                    posting = "Posting: %s, Weight: %.3f\nText: %s\n\n" %\
+                              (record["posting"],
+                               record["weight"],
+                               record["text"]
+                               )
+                    f.write(posting)
+
 
 def main():
 
