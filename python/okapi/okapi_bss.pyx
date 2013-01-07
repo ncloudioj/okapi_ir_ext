@@ -44,6 +44,7 @@ cdef class OkapiBss:
         cdef int i
         cdef int nlen = len(keywords)
         cdef int nset, nposting
+        cdef int ret
 
         keywords_list = <char **>malloc(nlen*sizeof(char *))
         if not keywords_list:
@@ -52,7 +53,7 @@ cdef class OkapiBss:
         for i in range(nlen):
             keywords_list[i] = keywords[i]
 
-        okapi_bss.okapi_search(nlen, keywords_list, &nset, &nposting)
+        ret = okapi_bss.okapi_search(nlen, keywords_list, &nset, &nposting)
 
         free(keywords_list)
 

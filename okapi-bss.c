@@ -622,6 +622,8 @@ int okapi_search (int nkeywords, char **keywords, int *docset, int *npostings) {
 
 		if ((return_code = i0(search_command, search_result)) != 0) {
 			bss_log("term_input()", search_command, return_code);
+			*docset = NONE_ASSIGNED;
+			*npostings = NONE_ASSIGNED;
 			return -1;
 		}
 
@@ -656,11 +658,12 @@ int okapi_show (int set, int from, int no_docs, char *result, size_t max) {
 		sprintf(bss_command, "s s=%d r=%d", set, from+next);
 
 		if ((return_code = i0(bss_command, bss_result)) != 0) {
-			return -1;
+			*presult = '\0';
+			return next;
 		}
 
 		nresult = strlen(bss_result);
-		ncopy = nresult+LEN_POSTFIX+1>left ? left-LEN_POSTFIX-1 : nresult; 	
+		ncopy = nresult+LEN_POSTFIX+1 > left ? left-LEN_POSTFIX-1 : nresult; 	
 		strncpy(presult, bss_result, ncopy);
 		presult += ncopy;
 		strncpy(presult, POSTFIX, LEN_POSTFIX);
