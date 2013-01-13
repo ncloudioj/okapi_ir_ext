@@ -6,14 +6,15 @@ cdef enum:
     LARGE_SIZE = 1024 * 1024
     SKIP_SIZE = 1 # skip the leading useles of document
 
-cdef class OkapiBss:
+cdef class OkapiBss(object):
     """Wrap okapi-bss library"""
 
     def __init__(self):
         okapi_bss.initialise_bss()
 
-    def __dealloc__(self):
+    def __del__(self):
         okapi_bss.close_bss()
+        super(OkapiBss, self).__del__()
 
     def show_database(self):
         cdef char *result
